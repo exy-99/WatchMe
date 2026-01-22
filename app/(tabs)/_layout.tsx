@@ -34,13 +34,13 @@ const Tabslayout = () => {
     <Tabs
       screenOptions={{
         tabBarShowLabel: false,
-        tabBarActiveTintColor: "#161622",
+        tabBarActiveTintColor: "#000000",
         tabBarInactiveTintColor: "#CDCDE0",
         tabBarStyle: {
           backgroundColor: "#ffffff",
           borderTopWidth: 1,
-          borderTopColor: "#f3f3f3",
-          height: 84,
+          borderTopColor: "#000000",
+          height: 840,
         },
       }}
     />
@@ -55,19 +55,60 @@ const _layout = () => {
         options={{
           title: "Home",
           headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Tabicon
+              icon={require("../../assets/icons/home.png")}
+              color={color}
+              name="Home"
+              focused={focused}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: "Search",
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Tabicon
+              icon={require("../../assets/icons/search.png")}
+              color={color}
+              name="Search"
+              focused={focused}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="saved"
+        options={{
+          title: "Saved",
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Tabicon
+              icon={require("../../assets/icons/saved.png")}
+              color={color}
+              name="Saved"
+              focused={focused}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
-        options={{ title: "Profile", headerShown: false }}
-      />
-      <Tabs.Screen
-        name="saved"
-        options={{ title: "Saved", headerShown: false }}
-      />
-      <Tabs.Screen
-        name="search"
-        options={{ title: "Search", headerShown: false }}
+        options={{
+          title: "Profile",
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Tabicon
+              icon={require("../../assets/icons/profile.png")}
+              color={color}
+              name="Profile"
+              focused={focused}
+            />
+          ),
+        }}
       />
       <Tabs.Screen
         name="movie/[id]"

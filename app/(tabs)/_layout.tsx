@@ -1,3 +1,4 @@
+import { icons } from "@/constants/icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Image, Text, View } from "react-native";
@@ -45,7 +46,7 @@ const TabsLayout = () => {
           backgroundColor: "#ffffff",
           borderTopWidth: 0.5,
           borderTopColor: "#000000",
-          height: 84,
+          height: 95,
         },
       }}
     >
@@ -56,12 +57,17 @@ const TabsLayout = () => {
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
-              icon={require("../../assets/icons/home.png")}
+              icon={icons.home}
               color={color}
               name="Home"
               focused={focused}
             />
           ),
+          tabBarItemStyle: {
+            width: "25%",
+            justifyContent: "center",
+            alignItems: "center",
+          },
         }}
       />
       <Tabs.Screen
@@ -71,12 +77,17 @@ const TabsLayout = () => {
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
-              icon={require("../../assets/icons/search.png")}
+              icon={icons.search}
               color={color}
               name="Search"
               focused={focused}
             />
           ),
+          tabBarItemStyle: {
+            width: "25%",
+            justifyContent: "center",
+            alignItems: "center",
+          },
         }}
       />
       <Tabs.Screen
@@ -86,12 +97,17 @@ const TabsLayout = () => {
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
-              icon={require("../../assets/icons/saved.png")}
+              icon={icons.saved}
               color={color}
               name="Saved"
               focused={focused}
             />
           ),
+          tabBarItemStyle: {
+            width: "25%",
+            justifyContent: "center",
+            alignItems: "center",
+          },
         }}
       />
       <Tabs.Screen
@@ -101,12 +117,17 @@ const TabsLayout = () => {
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
-              icon={require("../../assets/icons/profile.png")}
+              icon={icons.person}
               color={color}
               name="Profile"
               focused={focused}
             />
           ),
+          tabBarItemStyle: {
+            width: "25%",
+            justifyContent: "center",
+            alignItems: "center",
+          },
         }}
       />
     </Tabs>

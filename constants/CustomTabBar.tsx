@@ -1,4 +1,5 @@
 import { icons } from "@/constants/icons";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { usePathname, useRouter } from "expo-router";
 import {
   Dimensions,
@@ -27,7 +28,7 @@ interface TabItem {
   key: string;
 }
 
-const CustomTabBar = () => {
+const CustomTabBar = (props: BottomTabBarProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -62,9 +63,7 @@ const CustomTabBar = () => {
     },
   ];
 
-  // UPDATED LOGIC: Correctly identifies the active tab
   const activeIndex = tabs.findIndex((tab) => {
-    // Special check for Home because path might be "/" or "/index"
     if (tab.key === "home") {
       return (
         pathname === "/" ||
@@ -73,23 +72,19 @@ const CustomTabBar = () => {
         pathname === "/(tabs)"
       );
     }
-    // For other tabs, exact match is usually best
     return pathname === tab.route || pathname.startsWith(tab.route);
   });
 
   const getTabWidth = (index: number) => {
     if (activeIndex === -1) return SCREEN_WIDTH / TAB_COUNT;
 
-    // The active tab gets 50% of the screen
     if (index === activeIndex) return SCREEN_WIDTH * 0.5;
 
-    // The other 3 tabs share the remaining 50%
     const remainingWidth = SCREEN_WIDTH * 0.5;
     return remainingWidth / (TAB_COUNT - 1);
   };
 
   const handleTabPress = (route: TabRoute) => {
-    // Use replace for tabs to avoid building a huge stack history
     router.push(route as any);
   };
 
@@ -112,7 +107,6 @@ const CustomTabBar = () => {
               activeOpacity={0.7}
             >
               <View style={styles.tabContent}>
-                {/* ICON */}
                 <Image
                   source={tab.icon}
                   style={[
@@ -124,7 +118,6 @@ const CustomTabBar = () => {
                   resizeMode="contain"
                 />
 
-                {/* LABEL - Only visible when active */}
                 {isActive && (
                   <View style={styles.labelContainer}>
                     <Text style={styles.label} numberOfLines={1}>

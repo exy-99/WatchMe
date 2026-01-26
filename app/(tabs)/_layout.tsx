@@ -8,7 +8,7 @@ const TabsLayout = () => {
       screenOptions={{
         headerShown: false,
       }}
-      tabBar={() => <CustomTabBar />}
+      tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
       <Tabs.Screen name="search" options={{ title: "Search" }} />

@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Stack } from "expo-router";
 import React from "react";
-import { Dimensions, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 // Removed RankedHero import as we are implementing directly
 // import { RankedHero } from "@/components/RankedHero";
@@ -80,65 +80,9 @@ export default function Home() {
 
       <ScrollView className="flex-1 bg-white" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
-        {/* Header Title - Outside the box */}
-        <View className="px-5 pt-2 pb-2">
-          <Text className="text-4xl font-alegreyaSC text-slate-800">Top Watched</Text>
-        </View>
 
-        {/* Bracketed Content Container - For Movie Info */}
-        <View className="mx-5 mb-8 relative pt-4 pb-2">
 
-          {/* Top Left Bracket */}
-          <View className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-slate-800" />
 
-          {/* Content Wrapper with padding */}
-          <View className="px-4 py-2">
-
-            {/* Hero Section - 30% Screen Height */}
-            <View style={{ height: Dimensions.get('window').height * 0.30 }} className="flex-row">
-
-              {/* Left: Poster Placeholder */}
-              <View className="w-[45%] h-full rounded-3xl overflow-hidden shadow-xl shadow-black/50 bg-gray-400" />
-
-              {/* Right: Info */}
-              <View className="flex-1 justify-between py-2 ml-4">
-                <View>
-                  <Text className="text-3xl font-alegreyaSC text-slate-900 leading-tight mb-2">
-                    GREENLAND 2
-                  </Text>
-
-                  <View className="flex-row items-center space-x-8 mb-3">
-                    <Text className="text-gray-400 font-lato text-base">2026</Text>
-                    <Text className="text-gray-400 font-lato text-base">USA</Text>
-                  </View>
-
-                  <View className="flex-row mb-4">
-                    <View className="border border-red-500 rounded px-2 py-0.5">
-                      <Text className="text-red-500 font-lato text-xs lowercase">thriller</Text>
-                    </View>
-                  </View>
-
-                  <Text className="text-slate-800 font-playfair leading-6 text-base" numberOfLines={6}>
-                    In the aftermath of a comet strike that decimated most of the planet, the Garrity family must leave the safety of their Greenland bunker to traverse a shattered world in search of a new home.
-                  </Text>
-                </View>
-
-                <View className="flex-row justify-end items-end">
-                  <Text className="text-2xl font-lato text-gray-300">2h 15m</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Bottom Right Bracket */}
-          <View className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-slate-800" />
-        </View>
-
-        <View className="px-5 pt-8">
-          <Text className="text-lg font-lato text-gray-400 text-center mt-10">
-            Content area ready for new design...
-          </Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

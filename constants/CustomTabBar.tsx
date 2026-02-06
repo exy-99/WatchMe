@@ -1,143 +1,67 @@
 import { icons } from "@/constants/icons";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { usePathname, useRouter } from "expo-router";
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React from "react";
+import { Image, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeIn, FadeOut, LinearTransition, useAnimatedStyle, withSpring } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const TAB_BAR_HEIGHT = 84;
-const TAB_COUNT = 4;
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
-type TabRoute =
-  | "/(tabs)"
-  | "/(tabs)/search"
-  | "/(tabs)/saved"
-  | "/(tabs)/profile";
-
-interface TabItem {
-  name: string;
-  icon: any;
-  label: string;
-  route: TabRoute;
-  key: string;
-}
-
-const CustomTabBar = (props: BottomTabBarProps) => {
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const tabs: TabItem[] = [
-    {
-      name: "Home",
-      icon: icons.home,
-      label: "Home",
-      route: "/(tabs)",
-      key: "home",
-    },
-    {
-      name: "Search",
-      icon: icons.search,
-      label: "Search",
-      route: "/(tabs)/search",
-      key: "search",
-    },
-    {
-      name: "Saved",
-      icon: icons.saved,
-      label: "Saved",
-      route: "/(tabs)/saved",
-      key: "saved",
-    },
-    {
-      name: "Profile",
-      icon: icons.person,
-      label: "Profile",
-      route: "/(tabs)/profile",
-      key: "profile",
-    },
-  ];
-
-  // UPDATED LOGIC: Correctly identifies the active tab
-  const activeIndex = tabs.findIndex((tab) => {
-    // Check if pathname matches the tab key
-    if (pathname === `/${tab.key}` || pathname === `/(tabs)/${tab.key}`) {
-      return true;
-    }
-    // Special check for Home
-    if (tab.key === "home") {
-      return (
-        pathname === "/" ||
-        pathname === "/index" ||
-        pathname === "/(tabs)/index" ||
-        pathname === "/(tabs)"
-      );
-    }
-    return false;
-  });
-
-  const getTabWidth = (index: number) => {
-    if (activeIndex === -1) return SCREEN_WIDTH / TAB_COUNT;
-
-    // The active tab gets 50% of the screen
-    if (index === activeIndex) return SCREEN_WIDTH * 0.5;
-
-    // The other 3 tabs share the remaining 50%
-    const remainingWidth = SCREEN_WIDTH * 0.5;
-    return remainingWidth / (TAB_COUNT - 1);
-  };
-
-  const handleTabPress = (route: TabRoute) => {
-    // Use replace for tabs to avoid building a huge stack history
-    router.push(route as any);
-  };
+const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.tabBar}>
-        {tabs.map((tab, index) => {
-          const isActive = index === activeIndex;
-          const tabWidth = getTabWidth(index);
+    <View style={[styles.container, { paddingBottom: insets.bottom + 10 }]}>
+      <View style={styles.floatingPill}>
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: "tabPress",
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name, route.params);
+            }
+          };
+
+          // Determine Icon and Label based on route name
+          let iconSource = icons.home;
+          let label = "Home";
+
+          switch (route.name) {
+            case "index":
+              iconSource = icons.home;
+              label = "Home";
+              break;
+            case "search":
+              iconSource = icons.search;
+              label = "Search";
+              break;
+            case "saved":
+              iconSource = icons.saved;
+              label = "Saved";
+              break;
+            case "profile":
+              iconSource = icons.person;
+              label = "Profile";
+              break;
+            default:
+              break;
+          }
 
           return (
-            <TouchableOpacity
-              key={tab.key}
-              style={[
-                styles.tab,
-                { width: tabWidth },
-                isActive && styles.activeTab,
-              ]}
-              onPress={() => handleTabPress(tab.route)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.tabContent}>
-                {/* ICON */}
-                <Image
-                  source={tab.icon}
-                  style={[
-                    styles.icon,
-                    {
-                      tintColor: isActive ? "#000000" : "#CDCDE0",
-                    },
-                  ]}
-                  resizeMode="contain"
-                />
-
-                {/* LABEL - Only visible when active */}
-                {isActive && (
-                  <View style={styles.labelContainer}>
-                    <Text style={styles.label} numberOfLines={1}>
-                      {tab.label}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
+            <TabButton
+              key={route.key}
+              isActive={isFocused}
+              onPress={onPress}
+              icon={iconSource}
+              label={label}
+            />
           );
         })}
       </View>
@@ -145,45 +69,113 @@ const CustomTabBar = (props: BottomTabBarProps) => {
   );
 };
 
+const TabButton = ({
+  isActive,
+  onPress,
+  icon,
+  label,
+}: {
+  isActive: boolean;
+  onPress: () => void;
+  icon: any;
+  label: string;
+}) => {
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: isActive ? "#84f906" : "transparent",
+      paddingHorizontal: isActive ? 20 : 12,
+    };
+  }, [isActive]);
+
+  const animatedTextStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withSpring(isActive ? 1 : 0),
+      transform: [{ scale: withSpring(isActive ? 1 : 0.5) }],
+    };
+  }, [isActive]);
+
+  return (
+    <AnimatedTouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      layout={LinearTransition.springify().damping(15).stiffness(120)}
+      style={[styles.tabItem, animatedContainerStyle]}
+    >
+      <Image
+        source={icon}
+        style={[
+          styles.icon,
+          {
+            tintColor: isActive ? "#000000" : "#888888",
+          },
+        ]}
+        resizeMode="contain"
+      />
+
+      {isActive && (
+        <Animated.View
+          entering={FadeIn.duration(200).springify()}
+          exiting={FadeOut.duration(100)}
+          style={[styles.labelContainer, animatedTextStyle]}
+        >
+          <Text style={styles.label} numberOfLines={1}>
+            {label}
+          </Text>
+        </Animated.View>
+      )}
+    </AnimatedTouchableOpacity>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFFFFF",
-    borderTopColor: "#E0E0E0",
-    borderTopWidth: 0.5,
-    paddingBottom: 20,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    backgroundColor: "transparent",
+    zIndex: 100,
   },
-  tabBar: {
+  floatingPill: {
     flexDirection: "row",
-    height: TAB_BAR_HEIGHT,
-    alignItems: "center",
-  },
-  tab: {
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100%",
-  },
-  activeTab: {
-    backgroundColor: "#F8F8F8",
-    borderRadius: 16,
-  },
-  tabContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "#111111",
+    borderRadius: 40,
+    padding: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
     gap: 8,
-    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#333333",
+  },
+  tabItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 30,
+    height: 50,
   },
   icon: {
     width: 24,
     height: 24,
   },
   labelContainer: {
+    marginLeft: 8,
     overflow: "hidden",
   },
   label: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "700",
     color: "#000000",
+    fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
   },
 });
 

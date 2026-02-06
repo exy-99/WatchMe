@@ -92,7 +92,7 @@ export default function MovieDetail() {
           {/* Title & Info */}
           <View className="absolute bottom-0 left-0 px-5 pb-8 w-full">
             <Text className="text-5xl font-bebas text-white tracking-widest leading-tight mb-2">
-              {movie.title.toUpperCase()}
+              {movie.title}
             </Text>
 
             <View className="flex-row items-center space-x-4 mb-6">

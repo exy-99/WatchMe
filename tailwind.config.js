@@ -4,7 +4,7 @@ module.exports = {
 
   // NOTE: Update this to include the paths to all of your component files.
 
-  content: ["./app/**/*.{js,jsx,ts,tsx}"],
+  content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
 
   presets: [require("nativewind/preset")],
 
@@ -19,6 +19,10 @@ module.exports = {
         lato: ["Lato_400Regular", "sans-serif"],
         latoBold: ["Lato_700Bold", "sans-serif"],
         hennyPenny: ["HennyPenny_400Regular", "cursive"],
+      },
+      colors: {
+        primary: "#84f906",
+        secondary: "#121212",
       },
     },
 

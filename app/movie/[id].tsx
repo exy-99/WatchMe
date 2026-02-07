@@ -1,119 +1,163 @@
-import { fetchMovies, Movie } from '@/services/api';
+import { fetchShowDetails, MovieDetails } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Animated,
+  Image,
+  Linking,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// --- Skeleton Loader Component ---
+const SkeletonItem = ({ style }: { style: any }) => {
+  const animatedValue = new Animated.Value(0);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return <Animated.View style={[style, { opacity, backgroundColor: '#333' }]} />;
+};
+
+const MovieDetailSkeleton = () => (
+  <View className="flex-1 bg-[#121212]">
+    <View className="h-[50vh] w-full bg-gray-900 relative">
+      <SkeletonItem style={{ width: '100%', height: '100%' }} />
+    </View>
+    <View className="px-5 mt-4">
+      <SkeletonItem style={{ width: '60%', height: 40, marginBottom: 10, borderRadius: 8 }} />
+      <View className="flex-row gap-2 mb-6">
+        <SkeletonItem style={{ width: 60, height: 20, borderRadius: 4 }} />
+        <SkeletonItem style={{ width: 40, height: 20, borderRadius: 4 }} />
+      </View>
+      <View className="flex-row gap-4 mb-4">
+        <SkeletonItem style={{ flex: 1, height: 50, borderRadius: 25 }} />
+        <SkeletonItem style={{ flex: 1, height: 50, borderRadius: 25 }} />
+      </View>
+      <SkeletonItem style={{ width: '100%', height: 100, borderRadius: 8, marginBottom: 20 }} />
+    </View>
+  </View>
+);
 
 export default function MovieDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const [movie, setMovie] = useState<Movie | null>(null);
+  const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadMovie = async () => {
+      if (typeof id !== 'string') return;
       setLoading(true);
-      // specific logic for Suspiria (1977) to match wireframe exactly
-      if (id === 'suspiria-1977' || (typeof id === 'string' && id.toLowerCase().includes('suspiria'))) {
-        setMovie({
-          imdbId: 'suspiria-1977',
-          title: 'Suspiria',
-          releaseYear: 1977,
-          overview: 'A darkness swirls at the center of a world-renowned dance company, one that will engulf the artistic director, an ambitious young dancer, and a grieving psychotherapist. Some will succumb to the nightmare. Others will finally wake up.',
-          genres: [{ id: '1', name: 'Horror' }],
-          rating: 8.5,
-          tmdbId: 'suspiria',
-          img: null,
-          imageSet: {
-            verticalPoster: { w480: 'https://image.tmdb.org/t/p/w500/vSNxAJTlD0r02V9sPYpOjq975SC.jpg' },
-            horizontalPoster: { w1080: 'https://image.tmdb.org/t/p/original/a4W3D811oF61E481Z271530182.jpg' } // backdrop
-          }
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Fallback: Try to find in fetched list (inefficient but works for now without specific ID endpoint)
-      const movies = await fetchMovies();
-      const found = movies.find(m => m.imdbId === id || m.title === id);
-      if (found) {
-        setMovie(found);
-      }
+      const data = await fetchShowDetails(id);
+      setMovie(data);
       setLoading(false);
     };
     loadMovie();
   }, [id]);
 
   if (loading) {
-    return (
-      <View className="flex-1 bg-[#121212] justify-center items-center">
-        <ActivityIndicator size="large" color="#E50914" />
-      </View>
-    );
+    return <MovieDetailSkeleton />;
   }
 
   if (!movie) {
     return (
       <View className="flex-1 bg-[#121212] justify-center items-center">
-        <Text className="text-white">Movie not found</Text>
-        <TouchableOpacity onPress={() => router.back()} className="mt-4">
-          <Text className="text-primary">Go Back</Text>
+        <Text className="text-white text-lg font-bold mb-2">Movie not found</Text>
+        <Text className="text-gray-400 mb-6">Could not fetch details for this title.</Text>
+        <TouchableOpacity onPress={() => router.back()} className="bg-primary px-6 py-3 rounded-full">
+          <Text className="text-black font-bold">Go Back</Text>
         </TouchableOpacity>
       </View>
     );
   }
+
+  // Visual Fallback Logic
+  const backdropImage =
+    movie.imageSet?.horizontalPoster?.w1080 ||
+    movie.imageSet?.verticalPoster?.w720 ||
+    'https://via.placeholder.com/1080x600?text=No+Image';
+
+  const streamingServices = movie.streamingOptions?.us || [];
 
   return (
     <View className="flex-1 bg-[#121212]">
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Hero Section */}
-        <View className="relative h-[60vh] w-full">
+        {/* Header / Hero Section */}
+        <View className="relative h-[65vh] w-full">
           <Image
-            source={{ uri: movie.imageSet?.horizontalPoster?.w1080 || movie.imageSet?.verticalPoster?.w480 || 'https://via.placeholder.com/500' }}
+            source={{ uri: backdropImage }}
             className="w-full h-full"
             resizeMode="cover"
           />
           <LinearGradient
-            colors={['transparent', '#121212']}
-            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 400 }}
+            colors={['transparent', 'rgba(18,18,18,0.1)', '#121212']}
+            locations={[0, 0.4, 1]}
+            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 500 }}
           />
 
           {/* Back Button */}
           <SafeAreaView className="absolute top-0 left-0 z-50 ml-4">
-            <TouchableOpacity onPress={() => router.back()} className="bg-black/30 p-2 rounded-full backdrop-blur-md">
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="bg-black/40 p-2 rounded-full backdrop-blur-md border border-white/10"
+            >
               <Ionicons name="arrow-back" size={24} color="white" />
             </TouchableOpacity>
           </SafeAreaView>
 
-          {/* Title & Info */}
-          <View className="absolute bottom-0 left-0 px-5 pb-8 w-full">
-            <Text className="text-5xl font-bebas text-white tracking-widest leading-tight mb-2">
+          {/* Title & Info Overlay */}
+          <View className="absolute bottom-0 left-0 px-5 pb-4 w-full">
+            <Text className="text-4xl font-extrabold text-white tracking-wide leading-tight mb-3 shadow-lg">
               {movie.title}
             </Text>
 
-            <View className="flex-row items-center space-x-4 mb-6">
-              <View className="bg-primary/20 px-2 py-1 rounded border border-primary/50">
-                <Text className="text-primary font-bold text-xs">{movie.genres?.[0]?.name || 'Movie'}</Text>
-              </View>
-              <View className="flex-row items-center">
+            <View className="flex-row items-center flex-wrap gap-2 mb-5">
+              {movie.genres?.slice(0, 3).map((genre) => (
+                <View key={genre.id} className="bg-white/10 px-2.5 py-1 rounded-md border border-white/10">
+                  <Text className="text-white text-xs font-semibold">{genre.name}</Text>
+                </View>
+              ))}
+              <View className="flex-row items-center ml-1">
                 <Ionicons name="star" size={14} color="#F59E0B" />
-                <Text className="text-white font-bold ml-1">{movie.rating || 'N/A'}</Text>
+                <Text className="text-white font-bold ml-1 text-sm">{movie.rating.toFixed(1)}</Text>
               </View>
-              <Text className="text-gray-400">{movie.releaseYear}</Text>
-              <Text className="text-gray-400">2h 32m</Text>
-              {/* Hardcoded duration as API doesn't usually give runtime in search list */}
+              <Text className="text-gray-300 text-sm ml-2">{movie.releaseYear}</Text>
             </View>
 
-            <View className="flex-row space-x-3">
-              <TouchableOpacity className="flex-1 bg-primary py-3 rounded-full flex-row justify-center items-center">
-                <Ionicons name="play" size={20} color="black" />
+            {/* Action Buttons */}
+            <View className="flex-row gap-4 mb-2">
+              <TouchableOpacity className="flex-1 bg-primary py-3.5 rounded-xl flex-row justify-center items-center shadow-lg shadow-black/50">
+                <Ionicons name="play" size={22} color="black" />
                 <Text className="text-black font-bold text-lg ml-2">Watch Now</Text>
               </TouchableOpacity>
-              <TouchableOpacity className="flex-1 bg-[#2A2A2A] py-3 rounded-full flex-row justify-center items-center">
+              <TouchableOpacity className="flex-1 bg-[#2A2A2A] py-3.5 rounded-xl flex-row justify-center items-center border border-white/10">
                 <Ionicons name="add" size={24} color="white" />
                 <Text className="text-white font-bold text-lg ml-2">My List</Text>
               </TouchableOpacity>
@@ -121,50 +165,69 @@ export default function MovieDetail() {
           </View>
         </View>
 
-        {/* Content */}
+        {/* Content Body */}
         <View className="px-5 pb-10">
+
+          {/* WHERE TO WATCH SECTION */}
+          {streamingServices.length > 0 && (
+            <View className="mb-8">
+              <Text className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">Where to Watch</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                {streamingServices.map((option, index) => (
+                  <TouchableOpacity
+                    key={`${option.service.name}-${index}`}
+                    onPress={() => Linking.openURL(option.link)}
+                    className="mr-4 items-center"
+                  >
+                    <View className="w-16 h-16 rounded-2xl bg-[#1F1F1F] border border-white/10 justify-center items-center p-2 overflow-hidden shadow-sm">
+                      <Image
+                        source={{ uri: option.service.imageSet.lightThemeImage }}
+                        className="w-full h-full"
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <Text className="text-gray-400 text-[10px] mt-2 text-center w-16" numberOfLines={1}>
+                      {option.service.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
           {/* Synopsis */}
           <View className="mb-8">
-            <Text className="text-xl font-bold text-white mb-2">Synopsis</Text>
-            <Text className="text-gray-400 leading-6 text-base">
+            <Text className="text-white text-xl font-bold mb-3">Synopsis</Text>
+            <Text className="text-gray-400 leading-7 text-base">
               {movie.overview}
             </Text>
-            <View className="mt-4">
-              <Text className="text-gray-500 text-sm">Director <Text className="text-gray-300">Luca Guadagnino</Text></Text>
+            {movie.directors && movie.directors.length > 0 && (
+              <View className="mt-4 flex-row">
+                <Text className="text-gray-500 text-sm mr-2">Director:</Text>
+                <Text className="text-gray-300 text-sm font-semibold">{movie.directors.join(', ')}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Cast Section */}
+          {movie.cast && movie.cast.length > 0 && (
+            <View className="mb-8">
+              <Text className="text-white text-xl font-bold mb-4">Cast</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {movie.cast.slice(0, 10).map((actor, index) => (
+                  <View key={index} className="mr-4 items-center w-20">
+                    <View className="w-16 h-16 rounded-full bg-gray-800 mb-2 overflow-hidden border border-white/5">
+                      <Image
+                        source={{ uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(actor)}&background=random&color=fff` }}
+                        className="w-full h-full"
+                      />
+                    </View>
+                    <Text className="text-gray-300 text-xs text-center font-medium" numberOfLines={2}>{actor}</Text>
+                  </View>
+                ))}
+              </ScrollView>
             </View>
-          </View>
-
-          {/* Cast (Mocked for UI) */}
-          <View className="mb-8">
-            <Text className="text-xl font-bold text-white mb-4">Cast</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {['Tilda Swinton', 'Dakota Johnson', 'Chloë Moretz', 'Mia Goth'].map((actor, index) => (
-                <View key={index} className="mr-4 items-center w-20">
-                  <View className="w-16 h-16 rounded-full bg-gray-700 mb-2 overflow-hidden">
-                    {/* Placeholder actor image */}
-                    <Image source={{ uri: `https://i.pravatar.cc/150?u=${actor}` }} className="w-full h-full" />
-                  </View>
-                  <Text className="text-gray-300 text-xs text-center" numberOfLines={2}>{actor}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-
-          {/* Related Movies (Mocked/Static) */}
-          <View className="mb-8">
-            <Text className="text-xl font-bold text-white mb-4">Related Movies</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {['Hereditary', 'Midsommar', 'The Witch'].map((title, index) => (
-                <View key={index} className="mr-3 w-32">
-                  <View className="w-32 h-48 bg-gray-800 rounded-lg mb-2 overflow-hidden">
-                    {/* Placeholder poster */}
-                    <Image source={{ uri: `https://via.placeholder.com/150?text=${title}` }} className="w-full h-full" resizeMode="cover" />
-                  </View>
-                  <Text className="text-gray-300 text-sm font-bold" numberOfLines={1}>{title}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
+          )}
 
         </View>
       </ScrollView>

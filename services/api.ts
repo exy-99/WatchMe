@@ -202,6 +202,8 @@ export const fetchMovies = async (): Promise<Movie[]> => {
       return [];
     }
 
+    // ... (previous code)
+
   } catch (error) {
     console.error('Error fetching movies:', error);
     // Return empty list on error to prevent app crash
@@ -238,3 +240,77 @@ export const searchMovies = async (query: string): Promise<Movie[]> => {
     return [];
   }
 };
+
+// --- Movie Details & Streaming ---
+
+export interface StreamingOption {
+  service: {
+    name: string;
+    imageSet: { lightThemeImage: string };
+  };
+  type: 'subscription' | 'rent' | 'buy';
+  link: string;
+}
+
+export interface MovieDetails {
+  imdbId: string;
+  title: string;
+  overview: string;
+  streamingOptions: Record<string, StreamingOption[]>; // Key is country code like 'us'
+  imageSet: {
+    verticalPoster: { w720: string };
+    horizontalPoster: { w1080: string };
+  };
+  rating: number;
+  releaseYear: number;
+  genres: { id: string; name: string }[];
+  cast: string[];
+  directors: string[];
+}
+
+export const fetchShowDetails = async (imdbId: string, country: string = 'us'): Promise<MovieDetails | null> => {
+  console.log(`🎬 Fetching details for: ${imdbId} (country: ${country})`);
+  try {
+    const options = {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': API_KEY || '',
+        'X-RapidAPI-Host': API_HOST,
+      },
+    };
+
+    const url = `${BASE_URL}/shows/${imdbId}?output_language=en&country=${country}`;
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      console.error(`❌ API Error fetching details for ${imdbId}: ${response.status}`);
+      return null;
+    }
+
+    const json = await response.json();
+
+    // Validate required fields to avoid crashes
+    if (!json.imdbId) return null;
+
+    return {
+      imdbId: json.imdbId,
+      title: json.title,
+      overview: json.overview,
+      streamingOptions: json.streamingOptions || {},
+      imageSet: {
+        verticalPoster: { w720: json.imageSet?.verticalPoster?.w720 || json.imageSet?.verticalPoster?.w480 || '' },
+        horizontalPoster: { w1080: json.imageSet?.horizontalPoster?.w1080 || json.imageSet?.horizontalPoster?.w720 || '' }
+      },
+      rating: json.rating || 0,
+      releaseYear: json.releaseYear,
+      genres: json.genres || [],
+      cast: json.cast || [],
+      directors: json.directors || []
+    };
+
+  } catch (error) {
+    console.error(`Error fetching movie details for ${imdbId}:`, error);
+    return null;
+  }
+};
+

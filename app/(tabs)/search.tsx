@@ -1,23 +1,61 @@
+import GenreGrid from "@/components/GenreGrid";
+import RecentSearches from "@/components/RecentSearches";
+import SearchHeader from "@/components/SearchHeader";
+import SearchResults from "@/components/SearchResults";
+import TopSearches from "@/components/TopSearches";
 import { Movie, searchMovies } from "@/services/api";
-import { Ionicons } from "@expo/vector-icons";
-import { Link, Stack } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const RECENT_SEARCHES_KEY = "RECENT_SEARCHES_KEY";
 
 export default function Search() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
+  // Load recent searches on mount
+  useEffect(() => {
+    loadRecentSearches();
+  }, []);
+
+  const loadRecentSearches = async () => {
+    try {
+      const saved = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
+      if (saved) {
+        setRecentSearches(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error("Failed to load recent searches", e);
+    }
+  };
+
+  const saveRecentSearch = async (term: string) => {
+    if (!term.trim()) return;
+    try {
+      const newSearches = [term, ...recentSearches.filter((s) => s !== term)].slice(0, 5);
+      setRecentSearches(newSearches);
+      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(newSearches));
+    } catch (e) {
+      console.error("Failed to save recent search", e);
+    }
+  };
+
+  const clearRecentSearches = async () => {
+    try {
+      setRecentSearches([]);
+      await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+    } catch (e) {
+      console.error("Failed to clear recent searches", e);
+    }
+  };
+
+  // Search Logic
   useEffect(() => {
     if (query.trim().length === 0) {
       setResults([]);
@@ -34,87 +72,59 @@ export default function Search() {
     return () => clearTimeout(timer);
   }, [query]);
 
+  const handleSearchSubmit = () => {
+    if (query.trim()) {
+      saveRecentSearch(query.trim());
+    }
+  };
+
+  const handleRecentSearchPress = (term: string) => {
+    setQuery(term);
+    saveRecentSearch(term); // Move to top
+  };
+
+  const handleGenrePress = (genre: string) => {
+    setQuery(genre);
+    saveRecentSearch(genre);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-[#121212]" edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Shared Header w/ Menu Callback (optional here, but keeps consistency) */}
+      {/* Sticky Header */}
+      <SearchHeader
+        query={query}
+        setQuery={setQuery}
+        onSubmitEditing={handleSearchSubmit}
+        onFilterPress={() => {
+          // Placeholder for filter modal
+          console.log("Open Filter Modal");
+        }}
+      />
 
-
-      <View className="flex-1 px-4 mt-0">
-        {/* Search Input */}
-        <View className="flex-row items-center bg-[#1E1E1E] rounded-full px-4 py-3 mb-6 border border-gray-800">
-          <Ionicons name="search" size={20} color="#9CA3AF" />
-          <TextInput
-            className="flex-1 ml-3 text-white text-base font-lato"
-            placeholder="Search for movies, TV shows..."
-            placeholderTextColor="#9CA3AF"
-            value={query}
-            onChangeText={setQuery}
-            autoFocus
-          />
-          {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery("")}>
-              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {loading ? (
-          <ActivityIndicator size="large" color="#84f906" className="mt-10" />
+      <View className="flex-1">
+        {query.trim().length === 0 ? (
+          <ScrollView
+            className="flex-1"
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
+          >
+            <RecentSearches
+              searches={recentSearches}
+              onSearchPress={handleRecentSearchPress}
+              onClearAll={clearRecentSearches}
+            />
+            <GenreGrid onGenrePress={handleGenrePress} />
+            <TopSearches onSearchPress={handleRecentSearchPress} />
+          </ScrollView>
         ) : (
-          <FlatList
-            ListHeaderComponent={<View className="h-4" />}
-            data={results}
-            keyExtractor={(item) => item.imdbId || item.title}
-            showsVerticalScrollIndicator={false}
-            numColumns={2}
-            columnWrapperStyle={{ justifyContent: "space-between" }}
-            ListEmptyComponent={() => (
-              <View className="mt-20 items-center">
-                {query.length > 0 ? (
-                  <Text className="text-gray-500 font-lato text-lg">
-                    No results found for "{query}"
-                  </Text>
-                ) : (
-                  <View className="items-center opacity-50">
-                    <Ionicons name="film-outline" size={64} color="#374151" />
-                    <Text className="text-gray-600 font-lato mt-4 text-center">
-                      Search for your favorite movies
-                    </Text>
-                  </View>
-                )}
-              </View>
-            )}
-            renderItem={({ item }) => (
-              <Link href={`/movie/${item.imdbId || item.title}`} asChild>
-                <TouchableOpacity className="w-[48%] mb-6">
-                  <Image
-                    source={{
-                      uri:
-                        item.imageSet?.verticalPoster?.w480 ||
-                        "https://via.placeholder.com/300x450",
-                    }}
-                    className="w-full h-64 rounded-xl bg-gray-800"
-                    resizeMode="cover"
-                  />
-                  <Text
-                    className="text-white font-bold mt-2 text-base font-lato"
-                    numberOfLines={1}
-                  >
-                    {item.title}
-                  </Text>
-                  <View className="flex-row items-center justify-between mt-1">
-                    <Text className="text-gray-400 text-xs font-lato">
-                      {item.releaseYear}
-                    </Text>
-                    <Text className="text-gray-500 text-xs font-lato max-w-[70%]" numberOfLines={1}>
-                      {item.genres?.map((g) => g.name).join(", ")}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </Link>
-            )}
+          <SearchResults
+            results={results}
+            loading={loading}
+            viewMode={viewMode}
+            toggleViewMode={() => setViewMode((prev) => (prev === "grid" ? "list" : "grid"))}
+            onMoviePress={() => saveRecentSearch(query)}
           />
         )}
       </View>

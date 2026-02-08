@@ -1,5 +1,7 @@
 import Header from "@/components/Header";
+import MovieSection from "@/components/MovieSection";
 import SkeletonRow from "@/components/SkeletonRow";
+import SmartGenreRow from "@/components/SmartGenreRow";
 import { getContentRows, getHeroMovies, Movie } from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -10,7 +12,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Home() {
   const [heroMovies, setHeroMovies] = useState<Movie[]>([]);
-  const [contentRows, setContentRows] = useState<{ action: Movie[]; comedy: Movie[]; upcoming: Movie[] } | null>(null);
+  const [contentRows, setContentRows] = useState<{
+    topRated: Movie[];
+    newReleases: Movie[];
+  } | null>(null);
   const [loadingHero, setLoadingHero] = useState(true);
   const [loadingRows, setLoadingRows] = useState(true);
 
@@ -28,7 +33,7 @@ export default function Home() {
       setLoadingHero(false);
     };
 
-    // Slow API: Content Rows (Parallel)
+    // Hybrid API: Content Rows (Parallel)
     const loadRows = async () => {
       setLoadingRows(true);
       const data = await getContentRows();
@@ -38,6 +43,17 @@ export default function Home() {
 
     loadHero();
     loadRows();
+
+    // DEBUG: Trigger genre fetch for logs
+    const debugApi = async () => {
+      try {
+        const { getMoviesByGenre } = await import('@/services/api');
+        await getMoviesByGenre('Action');
+      } catch (e) {
+        console.error('DEBUG API Error:', e);
+      }
+    };
+    debugApi();
   }, []);
 
   // 2. Auto-Play Carousel
@@ -161,64 +177,31 @@ export default function Home() {
           </View>
         )}
 
-        {/* CONTENT ROWS (Slow API) */}
+        {/* CONTENT ROWS (Hybrid) */}
         <View className="pb-8">
           {loadingRows ? (
             <View>
-              <Text className="text-2xl font-black text-white uppercase tracking-widest px-5 mb-4">Action</Text>
+              <Text className="text-2xl font-black text-white uppercase tracking-widest px-5 mb-4">Trending</Text>
               <SkeletonRow />
-              <Text className="text-2xl font-black text-white uppercase tracking-widest px-5 mb-4">Comedy</Text>
+              <Text className="text-2xl font-black text-white uppercase tracking-widest px-5 mb-4">Top Rated</Text>
               <SkeletonRow />
-              <Text className="text-2xl font-black text-white uppercase tracking-widest px-5 mb-4">Upcoming</Text>
+              <Text className="text-2xl font-black text-white uppercase tracking-widest px-5 mb-4">New Releases</Text>
               <SkeletonRow />
             </View>
           ) : (
             contentRows && (
               <>
+                {/* Top Rated Row */}
+                <MovieSection title="⭐ Top Rated" movies={contentRows.topRated} />
+
+                {/* New Releases Row */}
+                <MovieSection title="🆕 New Releases" movies={contentRows.newReleases} />
+
                 {/* Action Row */}
-                <View className="mb-8">
-                  <View className="flex-row justify-between items-center px-5 mb-4">
-                    <Text className="text-2xl font-black text-white uppercase tracking-widest">Action</Text>
-                  </View>
-                  <FlatList
-                    horizontal
-                    data={contentRows.action}
-                    renderItem={renderMovieItem}
-                    keyExtractor={(item) => `action-${item.imdbId || item.title}`}
-                    contentContainerStyle={{ paddingHorizontal: 20 }}
-                    showsHorizontalScrollIndicator={false}
-                  />
-                </View>
+                <SmartGenreRow title="💥 Action Hits" genre="Action" />
 
                 {/* Comedy Row */}
-                <View className="mb-8">
-                  <View className="flex-row justify-between items-center px-5 mb-4">
-                    <Text className="text-2xl font-black text-white uppercase tracking-widest">Comedy</Text>
-                  </View>
-                  <FlatList
-                    horizontal
-                    data={contentRows.comedy}
-                    renderItem={renderMovieItem}
-                    keyExtractor={(item) => `comedy-${item.imdbId || item.title}`}
-                    contentContainerStyle={{ paddingHorizontal: 20 }}
-                    showsHorizontalScrollIndicator={false}
-                  />
-                </View>
-
-                {/* Upcoming Row */}
-                <View className="mb-8">
-                  <View className="flex-row justify-between items-center px-5 mb-4">
-                    <Text className="text-2xl font-black text-white uppercase tracking-widest">Upcoming</Text>
-                  </View>
-                  <FlatList
-                    horizontal
-                    data={contentRows.upcoming}
-                    renderItem={renderMovieItem}
-                    keyExtractor={(item) => `upcoming-${item.imdbId || item.title}`}
-                    contentContainerStyle={{ paddingHorizontal: 20 }}
-                    showsHorizontalScrollIndicator={false}
-                  />
-                </View>
+                <SmartGenreRow title="😂 Comedy Favorites" genre="Comedy" />
               </>
             )
           )}

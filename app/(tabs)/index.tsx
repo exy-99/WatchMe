@@ -1,14 +1,14 @@
+import ExternalLink from '@/components/ExternalLink';
 import Header from "@/components/Header";
-import MovieSection from "@/components/MovieSection";
-import SkeletonRow from "@/components/SkeletonRow";
-import SmartGenreRow from "@/components/SmartGenreRow";
 import { getContentRows, getHeroMovies, Movie } from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link, Stack } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Dimensions, FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import MovieSection from "../../components/MovieSection";
+import SkeletonRow from "../../components/SkeletonRow";
+import SmartGenreRow from "../../components/SmartGenreRow";
 
 export default function Home() {
   const [heroMovies, setHeroMovies] = useState<Movie[]>([]);
@@ -21,13 +21,15 @@ export default function Home() {
 
   const [currentHeaderIndex, setCurrentHeaderIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
-  const { width } = Dimensions.get('window');
+  const { width, height } = Dimensions.get('window');
+
+  // Hero Height = 55% of screen height
+  const HERO_HEIGHT = height * 0.55;
 
   const [isActionLoaded, setIsActionLoaded] = useState(false);
 
   // 1. Fetch Data
   useEffect(() => {
-    // Fast API: Hero
     const loadHero = async () => {
       setLoadingHero(true);
       const data = await getHeroMovies();
@@ -35,7 +37,6 @@ export default function Home() {
       setLoadingHero(false);
     };
 
-    // Hybrid API: Content Rows (Parallel)
     const loadRows = async () => {
       setLoadingRows(true);
       const data = await getContentRows();
@@ -67,147 +68,159 @@ export default function Home() {
     return () => clearInterval(intervalId);
   }, [currentHeaderIndex, heroMovies]);
 
-  const renderMovieItem = ({ item }: { item: Movie }) => (
-    <View className="mr-4 w-[160px]">
-      <Link href={`/movie/${item.imdbId}`} asChild>
-        <TouchableOpacity>
-          <Image
-            source={{ uri: item.imageSet?.verticalPoster?.w480 || 'https://via.placeholder.com/150' }}
-            className="w-[160px] h-[240px] rounded-xl bg-[#1E1E1E]"
-            resizeMode="cover"
-          />
-          <Text className="text-sm font-bold mt-3 text-white" numberOfLines={1}>{item.title}</Text>
-          <Text className="text-xs text-primary mt-1">{item.releaseYear}</Text>
-        </TouchableOpacity>
-      </Link>
-    </View>
-  );
-
   const renderFeaturedItem = ({ item }: { item: Movie }) => (
-    <View style={{ width: width, height: 550, alignItems: 'center', justifyContent: 'center' }}>
-      <View className="w-[90%] h-full bg-[#121212] rounded-3xl overflow-hidden border border-[#333333] relative">
-
+    <View style={{ width: width, height: HERO_HEIGHT }}>
+      <View className="flex-1 relative">
         <Image
-          source={{ uri: item.imageSet?.horizontalPoster?.w1080 || item.imageSet?.verticalPoster?.w480 || 'https://via.placeholder.com/1080x600' }}
-          className="w-full h-[60%] opacity-80"
+          source={{ uri: item.imageSet?.verticalPoster?.w720 || item.imageSet?.verticalPoster?.w480 || 'https://via.placeholder.com/720x1080' }}
+          className="w-full h-full"
           resizeMode="cover"
         />
+
+        {/* Gradient Overlay for Readability */}
         <LinearGradient
-          colors={['transparent', '#121212']}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '60%' }}
+          colors={['transparent', 'rgba(0,0,0,0.1)', 'rgba(0,0,0,0.8)', '#000000']}
+          locations={[0, 0.4, 0.7, 1]}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         />
 
-        <View className="flex-1 px-5 pt-4 justify-start">
-          <View className="self-start border border-primary px-2 py-1 rounded mb-3">
-            <Text className="text-primary text-[10px] uppercase font-bold tracking-wider">Featured</Text>
-          </View>
+        {/* Content Overlay */}
+        <View className="absolute bottom-0 w-full px-5 pb-8">
+          <View className="items-center mb-6">
+            <View className="bg-white/20 px-3 py-1 rounded backdrop-blur-md mb-3 border border-white/10">
+              <Text className="text-white text-[10px] font-bold tracking-widest uppercase">
+                #1 In Movies Today
+              </Text>
+            </View>
 
-          <Text className="text-4xl font-bold text-white leading-none mb-2 font-latoBold" numberOfLines={2}>
-            {item.title}
-          </Text>
-
-          <View className="flex-row items-center gap-4 mb-6">
-            <Text className="text-primary text-xs font-bold">{item.releaseYear}</Text>
-            <Text className="text-primary text-xs font-bold">|</Text>
-            <Text className="text-primary text-xs font-bold uppercase">{item.genres?.[0]?.name || "MOVIE"}</Text>
-            <Text className="text-primary text-xs font-bold">|</Text>
-            <Text className="text-primary text-xs font-bold">
-              {item.runtime ? `${Math.floor(item.runtime / 60)}H ${item.runtime % 60}M` : "1H 38M"}
+            <Text className="text-5xl font-black text-white text-center mb-3 font-serif tracking-tighter leading-tight shadow-lg">
+              {item.title}
             </Text>
-          </View>
 
-          <Link href={`/movie/${item.imdbId}?title=${encodeURIComponent(item.title)}&poster=${encodeURIComponent(item.imageSet?.verticalPoster?.w480 || '')}`} asChild>
-            <TouchableOpacity className="bg-primary px-6 py-3 rounded-full flex-row items-center justify-center space-x-2 w-48 shadow-[0_0_10px_rgba(132,249,6,0.6)]">
-              <Ionicons name="play" size={18} color="black" />
-              <Text className="text-black font-bold text-sm tracking-wide">WATCH NOW</Text>
-            </TouchableOpacity>
-          </Link>
+            <View className="flex-row items-center gap-2 mb-6">
+              <Text className="text-gray-300 text-xs font-semibold">{item.releaseYear}</Text>
+              <View className="w-1 h-1 bg-gray-500 rounded-full" />
+              <Text className="text-gray-300 text-xs font-semibold uppercase">{item.genres?.[0]?.name || "Film"}</Text>
+              <View className="w-1 h-1 bg-gray-500 rounded-full" />
+              <Text className="text-gray-300 text-xs font-semibold">
+                {item.runtime ? `${Math.floor(item.runtime / 60)}h ${item.runtime % 60}m` : "Movie"}
+              </Text>
+            </View>
+
+            <View className="flex-row gap-4 w-full px-4">
+              <Link href={`/movie/${item.imdbId}?title=${encodeURIComponent(item.title)}&poster=${encodeURIComponent(item.imageSet?.verticalPoster?.w480 || 'https://via.placeholder.com/720x1080')}`} asChild>
+                <TouchableOpacity className="flex-1 bg-white py-3 rounded-lg flex-row items-center justify-center space-x-2">
+                  <Ionicons name="play" size={24} color="black" />
+                  <Text className="text-black font-bold text-base">Play</Text>
+                </TouchableOpacity>
+              </Link>
+
+              <TouchableOpacity className="flex-1 bg-[#2C2C2C] py-3 rounded-lg flex-row items-center justify-center space-x-2">
+                <Ionicons name="add" size={24} color="white" />
+                <Text className="text-white font-bold text-base">My List</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-black" edges={['top']}>
+    <View className="flex-1 bg-black">
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScrollView className="flex-1 bg-black" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      {/* Header overlaid on top */}
+      <View className="absolute top-0 left-0 right-0 z-50">
         <Header />
+      </View>
 
-        {/* HERO SECTION (Fast API) */}
+      <ScrollView className="flex-1 bg-black" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+
+        {/* HERO SECTION */}
         {loadingHero ? (
-          <View className="h-[550px] justify-center items-center">
+          <View style={{ height: HERO_HEIGHT }} className="justify-center items-center bg-[#121212]">
             <ActivityIndicator size="large" color="#84f906" />
           </View>
         ) : (
-          <View className="pb-4 pt-8">
-            <View className="w-full h-[550px] mb-8">
-              <FlatList
-                ref={flatListRef}
-                data={heroMovies.slice(0, 5)}
-                renderItem={renderFeaturedItem}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => `featured-${item.imdbId}`}
-                onMomentumScrollEnd={(event) => {
-                  const index = Math.round(event.nativeEvent.contentOffset.x / width);
-                  setCurrentHeaderIndex(index);
-                }}
-                onScrollToIndexFailed={(info) => {
-                  // Fallback logic for scroll failure
-                  const wait = new Promise(resolve => setTimeout(resolve, 500));
-                  wait.then(() => {
-                    if (flatListRef.current) {
-                      flatListRef.current.scrollToIndex({ index: info.index, animated: true });
-                    }
-                  });
-                }}
-              />
+          <View style={{ height: HERO_HEIGHT }} className="mb-6 mt-16">
+            <FlatList
+              ref={flatListRef}
+              data={heroMovies.slice(0, 5)}
+              renderItem={renderFeaturedItem}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => `featured-${item.imdbId}`}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.round(event.nativeEvent.contentOffset.x / width);
+                setCurrentHeaderIndex(index);
+              }}
+              // Optimistic scroll fix
+              getItemLayout={(data, index) => ({ length: width, offset: width * index, index })}
+            />
+            {/* Dots Indicator */}
+            <View className="absolute bottom-28 w-full flex-row justify-center gap-2">
+              {heroMovies.slice(0, 5).map((_, i) => (
+                <View
+                  key={i}
+                  className={`w-2 h-2 rounded-full ${i === currentHeaderIndex ? 'bg-white' : 'bg-white/40'}`}
+                />
+              ))}
             </View>
           </View>
         )}
 
-        {/* CONTENT ROWS (Hybrid) */}
-        <View className="pb-8">
+        {/* CONTENT ROWS */}
+        <View className="-mt-4 relative z-10">
           {loadingRows ? (
-            <View>
-              <Text className="text-2xl font-black text-white uppercase tracking-widest px-5 mb-4">Trending</Text>
+            <View className="pt-4">
               <SkeletonRow />
-              <Text className="text-2xl font-black text-white uppercase tracking-widest px-5 mb-4">Top Rated</Text>
               <SkeletonRow />
-              <Text className="text-2xl font-black text-white uppercase tracking-widest px-5 mb-4">New Releases</Text>
               <SkeletonRow />
             </View>
           ) : (
             contentRows && (
-              <>
-                {/* Top Rated Row */}
-                <MovieSection title="⭐ Top Rated" movies={contentRows.topRated} />
+              <View className="gap-4">
+                {/* Top Rated Row - Larger Cards */}
+                <MovieSection
+                  title="Top Rated Movies"
+                  movies={contentRows.topRated}
+                  variant="large"
+                />
 
-                {/* New Releases Row */}
-                <MovieSection title="🆕 New Releases" movies={contentRows.newReleases} />
+                {/* Trending Row - Standard Cards */}
+                <MovieSection
+                  title="Trending Now"
+                  movies={contentRows.newReleases}
+                  variant="standard"
+                />
 
-                {/* Action Row - Loads First */}
+                {/* Smart Genre Rows */}
                 <SmartGenreRow
-                  title="💥 Action Hits"
+                  title="Blockbuster Actions"
                   genre="Action"
                   onLoadComplete={() => setIsActionLoaded(true)}
                 />
 
                 {/* Comedy Row - Loads after Action */}
                 <SmartGenreRow
-                  title="😂 Comedy Favorites"
+                  title="Comedy Hits"
                   genre="Comedy"
                   enabled={isActionLoaded}
                 />
-              </>
+              </View>
             )
           )}
+
+          <ExternalLink
+            url="https://simkl.com"
+            text="Powered by Simkl"
+            style={{ marginTop: 40, marginBottom: 40, alignSelf: 'center' }}
+          />
         </View>
 
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
-

@@ -1,3 +1,4 @@
+import ExternalLink from '@/components/ExternalLink';
 import { getMovieDetails, MovieDetails } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -208,6 +209,12 @@ export default function MovieDetail() {
                   </ScrollView>
                 </View>
               )}
+
+              <ExternalLink
+                url="https://simkl.com"
+                text="Powered by Simkl"
+                style={{ marginTop: 20, marginBottom: 40 }}
+              />
             </View>
           )
         )}
@@ -215,4 +222,3 @@ export default function MovieDetail() {
     </View>
   );
 }
-

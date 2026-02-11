@@ -89,7 +89,6 @@ const TabButton = ({
 
   const animatedTextStyle = useAnimatedStyle(() => {
     return {
-      opacity: withSpring(isActive ? 1 : 0),
       transform: [{ scale: withSpring(isActive ? 1 : 0.5) }],
     };
   }, [isActive]);

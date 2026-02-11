@@ -5,7 +5,12 @@ import { PlayfairDisplay_400Regular, PlayfairDisplay_700Bold } from "@expo-googl
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
+import { LogBox } from "react-native";
 import "./global.css";
+
+LogBox.ignoreLogs([
+  "SafeAreaView has been deprecated",
+]);
 
 SplashScreen.preventAutoHideAsync();
 

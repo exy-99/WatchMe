@@ -266,3 +266,13 @@ export const getAllRolesByActorId = async (id: string) => [];
 
 export const getSimilarMovies = searchMovies; // Fallback
 export const getSimilarSeries = async (query: string) => [];
+
+// 6. Generic Fetch for MediaFeed
+export const fetchMoviesFromPath = async (path: string): Promise<Movie[]> => {
+    // Some paths in CATEGORY_MAP might already have query params (e.g., ?interval=week)
+    // Axios handles this correctly when passed as the URL.
+    // We add specific params like `extended` to ensure we get images/metadata.
+    const data = await fetchSimkl<SimklItem[]>(path, { extended: 'overview,metadata,tmdb,genres,poster,fanart' });
+    if (!data) return [];
+    return data.slice(0, 20).map(mapSimklToMovie);
+};

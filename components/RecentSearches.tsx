@@ -12,23 +12,23 @@ export default function RecentSearches({ searches, onSearchPress, onClearAll }: 
     if (searches.length === 0) return null;
 
     return (
-        <View className="mb-8 px-5">
+        <View className="mb-8 px-5 pt-4">
             <View className="flex-row justify-between items-center mb-4">
-                <Text className="text-white font-bold text-lg">Recent Searches</Text>
+                <Text className="text-[#00FF00] font-bold text-lg tracking-widest uppercase">Recent Searches</Text>
                 <TouchableOpacity onPress={onClearAll}>
-                    <Text className="text-gray-400 text-xs">Clear All</Text>
+                    <Text className="text-[#00aa00] text-sm tracking-widest">Clear all</Text>
                 </TouchableOpacity>
             </View>
 
-            <View className="flex-row flex-wrap gap-2">
+            <View className="gap-4">
                 {searches.map((term, index) => (
                     <TouchableOpacity
                         key={index}
                         onPress={() => onSearchPress(term)}
-                        className="flex-row items-center bg-[#1E1E1E] px-4 py-2 rounded-full border border-white/5"
+                        className="flex-row items-center py-2 bg-transparent border-b border-[#00FF00]/10"
                     >
-                        <Ionicons name="time-outline" size={14} color="#9CA3AF" />
-                        <Text className="text-gray-300 text-sm ml-2 font-medium">{term}</Text>
+                        <Ionicons name="time-outline" size={20} color="#888" />
+                        <Text className="text-gray-300 text-lg ml-4 font-normal tracking-wide">{term}</Text>
                     </TouchableOpacity>
                 ))}
             </View>

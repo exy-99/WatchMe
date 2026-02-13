@@ -1,22 +1,27 @@
 import { Movie } from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import React from "react";
-import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Dimensions, FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 
 interface SearchResultsProps {
     results: Movie[];
     loading: boolean;
-    viewMode: 'grid' | 'list';
-    toggleViewMode: () => void;
     onMoviePress: () => void;
 }
 
-export default function SearchResults({ results, loading, viewMode, toggleViewMode, onMoviePress }: SearchResultsProps) {
+export default function SearchResults({ results, loading, onMoviePress }: SearchResultsProps) {
+    const { width } = Dimensions.get('window');
+    const gap = 10;
+    const padding = 20; // px-5 = 20px
+    const cardWidth = (width - padding - gap) / 2;
+    const cardHeight = cardWidth * 1.5;
+
     if (loading) {
         return (
             <View className="flex-1 justify-center items-center">
-                <ActivityIndicator size="large" color="#84f906" />
+                <ActivityIndicator size="large" color="#00FF00" />
             </View>
         );
     }
@@ -25,58 +30,69 @@ export default function SearchResults({ results, loading, viewMode, toggleViewMo
         return (
             <View className="flex-1 justify-center items-center px-10">
                 <Ionicons name="search" size={64} color="#333" />
-                <Text className="text-gray-500 text-lg mt-4 text-center">No results found. Try a different keyword.</Text>
+                <Text className="text-gray-500 text-lg mt-4 text-center">No results found.</Text>
             </View>
         );
     }
 
     const renderGridItem = ({ item }: { item: Movie }) => (
-        <Link href={`/movie/${item.imdbId}?title=${encodeURIComponent(item.title)}&poster=${encodeURIComponent(item.imageSet?.verticalPoster?.w480 || '')}`} asChild>
-            <TouchableOpacity onPress={onMoviePress} className="flex-1 m-2 mb-4">
-                <Image
-                    source={{ uri: item.imageSet?.verticalPoster?.w480 || 'https://via.placeholder.com/300x450' }}
-                    className="w-full aspect-[2/3] rounded-xl bg-[#1E1E1E]"
-                    resizeMode="cover"
-                />
-                <Text className="text-white text-sm font-semibold mt-2" numberOfLines={2}>{item.title}</Text>
-            </TouchableOpacity>
-        </Link>
-    );
+        <Link href={`/details/movie/${item.imdbId}?title=${encodeURIComponent(item.title)}&poster=${encodeURIComponent(item.imageSet?.verticalPoster?.w480 || '')}`} asChild>
+            <TouchableOpacity onPress={onMoviePress} className="mb-4" style={{ width: cardWidth }}>
+                <View
+                    style={{ height: cardHeight }}
+                    className="overflow-hidden bg-black border border-[#00FF00] relative"
+                >
+                    <Image
+                        source={{ uri: item.imageSet?.verticalPoster?.w480 || 'https://via.placeholder.com/300x450' }}
+                        className="w-full h-full opacity-80"
+                        resizeMode="cover"
+                    />
 
-    const renderListItem = ({ item }: { item: Movie }) => (
-        <Link href={`/movie/${item.imdbId}?title=${encodeURIComponent(item.title)}&poster=${encodeURIComponent(item.imageSet?.verticalPoster?.w480 || '')}`} asChild>
-            <TouchableOpacity onPress={onMoviePress} className="flex-row mb-4 bg-[#1E1E1E] rounded-xl overflow-hidden p-2">
-                <Image
-                    source={{ uri: item.imageSet?.verticalPoster?.w480 || 'https://via.placeholder.com/300x450' }}
-                    className="w-16 h-24 rounded-lg bg-gray-800"
-                    resizeMode="cover"
-                />
-                <View className="flex-1 ml-3 justify-center">
-                    <Text className="text-white text-base font-bold mb-1">{item.title}</Text>
-                    <Text className="text-primary text-xs">{item.releaseYear}</Text>
-                    <Text className="text-gray-400 text-xs mt-1" numberOfLines={2}>{item.overview}</Text>
+                    {/* Gradient Overlay */}
+                    <LinearGradient
+                        colors={['transparent', 'rgba(0,0,0,0.9)']}
+                        className="absolute bottom-0 left-0 right-0 h-1/2"
+                    />
+
+                    {/* RATING Overlay - Top Right */}
+                    {!!item.rating && (
+                        <View className="absolute top-1 right-1 bg-black/60 px-1.5 py-0.5 rounded flex-row items-center border border-[#00FF00]/30">
+                            <Ionicons name="star" size={10} color="#00FF00" style={{ marginRight: 2 }} />
+                            <Text className="text-[#00FF00] font-mono text-[10px] font-bold">{item.rating.toFixed(1)}</Text>
+                        </View>
+                    )}
+
+                    {/* Bottom Info */}
+                    <View className="absolute bottom-1 left-1 right-1 flex-row justify-between items-end">
+                        <Text
+                            className="text-[#00FF00] font-mono text-[10px] font-bold uppercase tracking-wider flex-1 mr-1"
+                            numberOfLines={2}
+                        >
+                            {item.title}
+                        </Text>
+
+                        {/* YEAR Badge */}
+                        {!!item.releaseYear && (
+                            <View className="bg-black/60 px-1 py-0.5 rounded border border-[#00FF00]/30 mb-[1px]">
+                                <Text className="text-[#00FF00] font-mono text-[8px] font-bold">{item.releaseYear}</Text>
+                            </View>
+                        )}
+                    </View>
                 </View>
             </TouchableOpacity>
         </Link>
     );
 
     return (
-        <View className="flex-1">
-            <View className="flex-row justify-between items-center px-5 mb-2 mt-2">
-                <Text className="text-gray-400 text-sm">{results.length} results</Text>
-                <TouchableOpacity onPress={toggleViewMode} className="flex-row items-center">
-                    <Ionicons name={viewMode === 'grid' ? "list" : "grid"} size={18} color="#84f906" />
-                    <Text className="text-primary ml-1 text-xs">{viewMode === 'grid' ? 'List' : 'Grid'}</Text>
-                </TouchableOpacity>
-            </View>
-
+        <View className="flex-1 pt-4">
             <FlatList
                 data={results}
                 keyExtractor={(item) => item.imdbId}
-                renderItem={viewMode === 'grid' ? renderGridItem : renderListItem}
-                key={viewMode} // Force re-render on mode change
-                numColumns={viewMode === 'grid' ? 2 : 1}
-                contentContainerStyle={{ paddingHorizontal: 15, paddingBottom: 100 }}
+                renderItem={renderGridItem}
+                numColumns={2}
+                key={2} // Force re-render
+                columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 10 }}
+                contentContainerStyle={{ paddingBottom: 100 }}
             />
         </View>
     );

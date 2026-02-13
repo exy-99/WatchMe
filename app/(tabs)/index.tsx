@@ -15,7 +15,7 @@ export default function Home() {
       <View className="absolute top-0 left-0 right-0 z-50">
         <Header
           activeTab={activeTab}
-          onTabChange={(tab) => setActiveTab(tab as any)}
+          onTabChange={(tab: string) => setActiveTab(tab as any)}
         />
       </View>
 

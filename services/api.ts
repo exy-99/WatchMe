@@ -11,8 +11,8 @@ const simklClient = axios.create({
     },
 });
 
-// Image Proxy Configuration
-const IMAGE_PROXY_BASE = 'https://wsrv.nl/?url=https://simkl.in';
+// Direct Simkl CDN (proxy was causing intermittent failures)
+const IMAGE_BASE = 'https://simkl.in';
 
 // --- Interfaces ---
 export interface Movie {
@@ -95,12 +95,12 @@ const getPosterUrl = (path?: string, size: 'w' | 'm' | 'poster' = 'poster') => {
     // Simkl poster paths are like "12/126886..."
     // Proxy format: https://wsrv.nl/?url=https://simkl.in/posters/{path}_m.webp
     if (!path) return 'https://via.placeholder.com/300x450?text=No+Poster';
-    return `${IMAGE_PROXY_BASE}/posters/${path}_m.webp`;
+    return `${IMAGE_BASE}/posters/${path}_m.webp`;
 }
 
 const getFanartUrl = (path?: string) => {
     if (!path) return 'https://via.placeholder.com/1080x600?text=No+Image';
-    return `${IMAGE_PROXY_BASE}/fanart/${path}_medium.webp`;
+    return `${IMAGE_BASE}/fanart/${path}_medium.webp`;
 }
 
 const mapSimklToMovie = (item: SimklItem): Movie => ({
@@ -201,6 +201,7 @@ export const getNewReleases = async (): Promise<Movie[]> => {
     return data.slice(0, 10).map(mapSimklToMovie);
 };
 
+// 2. Content Rows (Legacy/Current)
 export const getContentRows = async () => {
     console.log('🔄 Fetching Content Rows from Simkl...');
     const [topRated, newReleases] = await Promise.all([

@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Dimensions, FlatList, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { fetchMoviesFromPath, Movie } from "@/services/api";
+import { getRoute } from "@/services/simkl";
 import ExternalLink from "./ExternalLink";
 import MovieSection from "./MovieSection";
 import SkeletonRow from "./SkeletonRow";
@@ -39,6 +40,7 @@ const CATEGORY_MAP = {
 };
 
 export default function MediaFeed({ categoryKey }: MediaFeedProps) {
+    const mediaType = CATEGORY_MAP[categoryKey].type as 'movie' | 'show' | 'anime';
     const [heroMovies, setHeroMovies] = useState<Movie[]>([]);
     const [contentRows, setContentRows] = useState<{
         topRated: Movie[];
@@ -148,7 +150,7 @@ export default function MediaFeed({ categoryKey }: MediaFeedProps) {
                         </View>
 
                         {/* Main Action - Green Block */}
-                        <Link href={`/movie/${item.imdbId}?title=${encodeURIComponent(item.title)}&poster=${encodeURIComponent(item.imageSet?.verticalPoster?.w480 || 'https://via.placeholder.com/720x1080')}`} asChild>
+                        <Link href={getRoute(mediaType === 'show' ? 'tv' : mediaType, Number(item.imdbId)) as any} asChild>
                             <TouchableOpacity className="bg-[#00FF41] w-56 h-16 flex-row items-center justify-center space-x-3 shadow-[0_0_60px_rgba(0,255,65,0.9)] rounded-sm border border-[#ccffcc]">
                                 <Ionicons name="play-sharp" size={24} color="black" />
                                 <Text className="text-black font-mono font-black text-lg tracking-[0.2em]">EXECUTE</Text>
@@ -209,6 +211,7 @@ export default function MediaFeed({ categoryKey }: MediaFeedProps) {
                             movies={contentRows.trending}
                             variant="large"
                             layout="double-scroll"
+                            mediaType={mediaType}
                         />
 
                         {/* TOP_RATED */}
@@ -217,6 +220,7 @@ export default function MediaFeed({ categoryKey }: MediaFeedProps) {
                             movies={contentRows.topRated}
                             variant="large"
                             layout="double-scroll"
+                            mediaType={mediaType}
                         />
 
                         {/* Smart Genre Rows - Simkl DOES NOT SUPPORT filtering 'trending' by genre directly easy way without specific endpoints.
@@ -290,12 +294,15 @@ function GenreSection({ categoryKey, genreKey, title }: { categoryKey: 'films' |
     if (loading) return <SkeletonRow />;
     if (movies.length === 0) return null;
 
+    const mediaType = CATEGORY_MAP[categoryKey].type as 'movie' | 'show' | 'anime';
+
     return (
         <MovieSection
             title={title}
             movies={movies}
             variant="large"
             layout="double-scroll"
+            mediaType={mediaType}
         />
     );
 }

@@ -2,7 +2,7 @@ import GenreGrid from "@/components/GenreGrid";
 import RecentSearches from "@/components/RecentSearches";
 import SearchHeader from "@/components/SearchHeader";
 import SearchResults from "@/components/SearchResults";
-import TopSearches from "@/components/TopSearches";
+import TrendingNow from "@/components/TrendingNow";
 import { Movie, searchMovies } from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
@@ -16,7 +16,6 @@ export default function Search() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   // Load recent searches on mount
@@ -89,16 +88,15 @@ export default function Search() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#121212]" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-black" edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Sticky Header */}
+      {/* Header */}
       <SearchHeader
         query={query}
         setQuery={setQuery}
         onSubmitEditing={handleSearchSubmit}
         onFilterPress={() => {
-          // Placeholder for filter modal
           console.log("Open Filter Modal");
         }}
       />
@@ -116,14 +114,12 @@ export default function Search() {
               onClearAll={clearRecentSearches}
             />
             <GenreGrid onGenrePress={handleGenrePress} />
-            <TopSearches onSearchPress={handleRecentSearchPress} />
+            <TrendingNow />
           </ScrollView>
         ) : (
           <SearchResults
             results={results}
             loading={loading}
-            viewMode={viewMode}
-            toggleViewMode={() => setViewMode((prev) => (prev === "grid" ? "list" : "grid"))}
             onMoviePress={() => saveRecentSearch(query)}
           />
         )}

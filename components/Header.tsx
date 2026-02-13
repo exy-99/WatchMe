@@ -11,8 +11,8 @@ type HeaderProps = {
 
 export default function Header({ activeTab = 'films', onTabChange }: HeaderProps) {
     const tabs = [
-        { key: 'films', label: 'FILMS' },
-        { key: 'series', label: 'SERIES' },
+        { key: 'films', label: 'MOVIES' },
+        { key: 'series', label: 'TV ' },
         { key: 'anime', label: 'ANIME' },
     ];
 

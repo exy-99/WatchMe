@@ -1,4 +1,5 @@
 import { Movie } from "@/services/api";
+import { getRoute } from "@/services/simkl";
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from "expo-router";
 import React from "react";
@@ -9,9 +10,10 @@ interface MovieSectionProps {
     movies: Movie[];
     variant?: 'standard' | 'large' | 'landscape';
     layout?: 'row' | 'grid' | 'double-scroll';
+    mediaType?: 'movie' | 'show' | 'anime';
 }
 
-export default function MovieSection({ title, movies, variant = 'standard', layout = 'row' }: MovieSectionProps) {
+export default function MovieSection({ title, movies, variant = 'standard', layout = 'row', mediaType = 'movie' }: MovieSectionProps) {
     if (!movies || movies.length === 0) return null;
 
     const { width } = Dimensions.get('window');
@@ -45,7 +47,7 @@ export default function MovieSection({ title, movies, variant = 'standard', layo
     }
 
     const renderCard = ({ item }: { item: Movie }) => (
-        <Link href={`/movie/${item.imdbId}?title=${encodeURIComponent(item.title)}&poster=${encodeURIComponent(item.imageSet?.verticalPoster?.w480 || '')}`} asChild>
+        <Link href={getRoute(mediaType === 'show' ? 'tv' : mediaType, Number(item.imdbId)) as any} asChild>
             <TouchableOpacity style={{ width: cardWidth }} className="mr-0">
                 <View
                     style={{ height: cardHeight }}

@@ -65,50 +65,54 @@ export default function HeroCarousel({ items }: HeroCarouselProps) {
                     <View className="absolute top-0 w-full h-24 bg-gradient-to-b from-[#000000] to-transparent" />
 
                     {/* Content Overlay */}
-                    <View className="absolute bottom-0 w-full px-5 pb-8 items-center">
+                    <View className="absolute bottom-0 w-full px-5 pb-12 justify-end">
 
-                        {/* Dynamic Tag Box */}
-                        <View className="border border-primary/30 bg-black/50 px-4 py-1.5 mb-6 backdrop-blur-sm">
-                            <Text className="text-primary text-[10px] font-mono tracking-[0.2em] font-bold uppercase transition-all duration-300">
-                                {item.genres?.slice(0, 3).map(g => g.name).join(' • ').toUpperCase() || 'FEATURED'}
-                            </Text>
-                        </View>
-
-                        {/* Title with Glow Effect */}
-                        <Text className="text-4xl font-black text-white text-center mb-6 font-mono tracking-tighter leading-tight italic"
+                        {/* Title with Glow Effect - Left Aligned */}
+                        <Text className="text-5xl font-black text-white text-left mb-2 font-mono tracking-tighter leading-tight italic"
                             style={{ textShadowColor: 'rgba(132, 249, 6, 0.5)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 }}>
                             {item.title.toUpperCase()}
                         </Text>
 
-                        {/* Action Buttons */}
-                        <View className="flex-row items-center justify-center w-full max-w-md mb-10 px-4 gap-6">
+                        {/* Tags / Metadata - Clean Text, No Box */}
+                        <View className="flex-row items-center mb-6">
+                            <Text className="text-[#00FF41] text-xs font-mono tracking-widest font-bold uppercase mr-2">
+                                {item.releaseYear}
+                            </Text>
+                            {/* Separator */}
+                            <View className="w-1 h-1 rounded-full bg-gray-400 mr-2" />
 
-                            {/* My List */}
-                            <View className="items-center">
-                                <TouchableOpacity className="items-center justify-center w-14 h-14 border border-white/30 bg-black/40 rounded-lg mb-2 active:bg-white/10">
-                                    <Ionicons name="add" size={28} color="white" />
-                                </TouchableOpacity>
-                                <Text className="text-[10px] text-gray-400 font-mono tracking-widest font-bold">LIST</Text>
-                            </View>
+                            <Text className="text-gray-300 text-xs font-mono tracking-widest font-bold uppercase shadow-black drop-shadow-md">
+                                {item.genres?.slice(0, 3).map(g => g.name).join(' • ').toUpperCase() || 'SCI-FI • ACTION'}
+                            </Text>
+                        </View>
+
+                        {/* Action Buttons - Left Aligned */}
+                        <View className="flex-row items-center justify-start w-full gap-5">
 
                             {/* Main Action - Green Block */}
                             <TouchableOpacity
                                 onPress={handlePress}
-                                className="w-48 h-14 bg-[#00FF41] flex-row items-center justify-center space-x-2 shadow-[0_0_40px_rgba(0,255,65,0.6)] rounded-sm border border-[#ccffcc] active:scale-95 transition-transform"
+                                className="w-40 h-14 bg-[#00FF41] flex-row items-center justify-center space-x-2 shadow-[0_0_30px_rgba(0,255,65,0.5)] rounded-sm border border-[#ccffcc] active:scale-95 transition-transform"
                             >
-                                <Ionicons name="play-sharp" size={22} color="black" />
-                                <Text className="text-black font-mono font-black text-lg tracking-[0.2em]">WATCH</Text>
+                                <Ionicons name="play-sharp" size={24} color="black" />
+                                <Text className="text-black font-mono font-black text-lg tracking-[0.1em]">WATCH</Text>
                             </TouchableOpacity>
+
+                            {/* My List */}
+                            <View className="items-center">
+                                <TouchableOpacity className="items-center justify-center w-14 h-14 border border-white/20 bg-black/40 rounded-lg active:bg-white/10">
+                                    <Ionicons name="add" size={28} color="white" />
+                                </TouchableOpacity>
+                            </View>
 
                             {/* Details */}
                             <View className="items-center">
                                 <TouchableOpacity
                                     onPress={handlePress}
-                                    className="items-center justify-center w-14 h-14 border border-white/30 bg-black/40 rounded-lg mb-2 active:bg-white/10"
+                                    className="items-center justify-center w-14 h-14 border border-white/20 bg-black/40 rounded-lg active:bg-white/10"
                                 >
                                     <Ionicons name="information-circle-outline" size={28} color="white" />
                                 </TouchableOpacity>
-                                <Text className="text-[10px] text-gray-400 font-mono tracking-widest font-bold">INFO</Text>
                             </View>
                         </View>
                     </View>

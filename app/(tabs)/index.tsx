@@ -101,6 +101,8 @@ export default function Home() {
                   key={key}
                   title={CATEGORY_MAP[key].title}
                   items={movies}
+                  mediaType={CATEGORY_MAP[key].type}
+                  categoryKey={key}
                 />
               );
             })

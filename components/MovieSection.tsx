@@ -1,7 +1,7 @@
 import { Movie } from "@/services/api";
 import { getRoute } from "@/services/simkl";
 import { Ionicons } from '@expo/vector-icons';
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React from "react";
 import { Dimensions, FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 
@@ -11,9 +11,10 @@ interface MovieSectionProps {
     variant?: 'standard' | 'large' | 'landscape';
     layout?: 'row' | 'grid' | 'double-scroll';
     mediaType?: 'movie' | 'show' | 'anime';
+    categoryKey?: string;
 }
 
-export default function MovieSection({ title, movies, variant = 'standard', layout = 'row', mediaType = 'movie' }: MovieSectionProps) {
+export default function MovieSection({ title, movies, variant = 'standard', layout = 'row', mediaType = 'movie', categoryKey }: MovieSectionProps) {
     if (!movies || movies.length === 0) return null;
 
     const { width } = Dimensions.get('window');
@@ -97,24 +98,33 @@ export default function MovieSection({ title, movies, variant = 'standard', layo
     );
 
     // Header Component
-    const SectionHeader = () => (
-        <View className="mb-4 px-5">
-            <View className="flex-row items-center justify-between">
-                {/* Title with left bar */}
-                <View className="flex-row items-center">
-                    <View className="w-1 h-6 bg-[#00FF41] mr-3" />
-                    <Text className="text-xl font-bold text-white uppercase tracking-tighter font-mono">
-                        {title.replace(/\s+/g, '_')}
-                    </Text>
-                </View>
+    const SectionHeader = () => {
+        const router = useRouter();
 
-                {/* View All Button */}
-                <View className="border border-[#005500] bg-[#001100] px-3 py-1">
-                    <Text className="text-[8px] text-[#00FF41] font-bold font-mono tracking-widest">VIEW_ALL</Text>
+        return (
+            <View className="mb-4 px-5">
+                <View className="flex-row items-center justify-between">
+                    {/* Title with left bar */}
+                    <View className="flex-row items-center">
+                        <View className="w-1 h-6 bg-[#00FF41] mr-3" />
+                        <Text className="text-xl font-bold text-white uppercase tracking-tighter font-mono">
+                            {title.replace(/\s+/g, '_')}
+                        </Text>
+                    </View>
+
+                    {/* View All Button */}
+                    {categoryKey && (
+                        <TouchableOpacity
+                            onPress={() => router.push(`/category/${categoryKey}` as any)}
+                            className="border border-[#005500] bg-[#001100] px-3 py-1 active:bg-[#002200]"
+                        >
+                            <Text className="text-[8px] text-[#00FF41] font-bold font-mono tracking-widest">VIEW_ALL</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     if (layout === 'double-scroll') {
         // Enforce 5 items per row exactly

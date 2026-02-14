@@ -5,9 +5,11 @@ import MovieSection from "./MovieSection";
 interface SectionRowProps {
     title: string;
     items: Movie[];
+    mediaType?: 'movie' | 'show' | 'anime';
+    categoryKey?: string;
 }
 
-export default function SectionRow({ title, items }: SectionRowProps) {
+export default function SectionRow({ title, items, mediaType = 'movie', categoryKey }: SectionRowProps) {
     if (!items || items.length === 0) return null;
 
     return (
@@ -16,7 +18,8 @@ export default function SectionRow({ title, items }: SectionRowProps) {
             movies={items}
             variant="large"
             layout="double-scroll"
-            mediaType="movie" // Defaulting to movie for now as per configuration
+            mediaType={mediaType}
+            categoryKey={categoryKey}
         />
     );
 }

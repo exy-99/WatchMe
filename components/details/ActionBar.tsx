@@ -1,7 +1,8 @@
-import { useBookmarkStore } from '@/store/bookmarks';
+import { SaveToSheet } from '@/components/saved/SaveToSheet';
+import { useCollectionsStore } from '@/store/collections';
 import { isMovie, MediaItem } from '@/types/ui';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import { Linking, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ActionBarProps {
@@ -9,23 +10,13 @@ interface ActionBarProps {
     mediaType: 'movie' | 'tv' | 'anime';
 }
 
-export const ActionBar: React.FC<ActionBarProps> = ({ media, mediaType }) => {
-    const { isBookmarked, toggleBookmark } = useBookmarkStore();
-    const bookmarked = isBookmarked(media.id);
+export const ActionBar: React.FC<ActionBarProps> = ({ media }) => {
+    const { isItemInAnyCollection } = useCollectionsStore();
+    const bookmarked = isItemInAnyCollection(media.id);
+    const [isSheetVisible, setSheetVisible] = useState(false);
 
     // Resolve trailer URL: MovieDetail uses trailerUrl, SeriesDetail uses trailer
     const trailerUrl = isMovie(media) ? media.trailerUrl : media.trailer;
-
-    const handleBookmark = () => {
-        toggleBookmark({
-            id: media.id,
-            type: mediaType,
-            title: media.title,
-            poster: media.poster || '',
-            year: media.year,
-            timestamp: Date.now()
-        });
-    };
 
     const handleTrailer = () => {
         if (trailerUrl) {
@@ -45,26 +36,34 @@ export const ActionBar: React.FC<ActionBarProps> = ({ media, mediaType }) => {
     };
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity style={styles.actionButton} onPress={handleBookmark}>
-                <Ionicons
-                    name={bookmarked ? "bookmark" : "bookmark-outline"}
-                    size={24}
-                    color={bookmarked ? "#E50914" : "#ffffff"}
-                />
-                <Text style={styles.actionText}>{bookmarked ? "Saved" : "My List"}</Text>
-            </TouchableOpacity>
+        <>
+            <View style={styles.container}>
+                <TouchableOpacity style={styles.actionButton} onPress={() => setSheetVisible(true)}>
+                    <Ionicons
+                        name={bookmarked ? "bookmark" : "bookmark-outline"}
+                        size={24}
+                        color={bookmarked ? "#E50914" : "#ffffff"}
+                    />
+                    <Text style={styles.actionText}>{bookmarked ? "Saved" : "My List"}</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton} onPress={handleTrailer} disabled={!trailerUrl}>
-                <Ionicons name="play-circle-outline" size={26} color={trailerUrl ? "#ffffff" : "#555"} />
-                <Text style={[styles.actionText, !trailerUrl && styles.disabledText]}>Trailer</Text>
-            </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton} onPress={handleTrailer} disabled={!trailerUrl}>
+                    <Ionicons name="play-circle-outline" size={26} color={trailerUrl ? "#ffffff" : "#555"} />
+                    <Text style={[styles.actionText, !trailerUrl && styles.disabledText]}>Trailer</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-                <Ionicons name="share-social-outline" size={24} color="#ffffff" />
-                <Text style={styles.actionText}>Share</Text>
-            </TouchableOpacity>
-        </View>
+                <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
+                    <Ionicons name="share-social-outline" size={24} color="#ffffff" />
+                    <Text style={styles.actionText}>Share</Text>
+                </TouchableOpacity>
+            </View>
+
+            <SaveToSheet
+                visible={isSheetVisible}
+                onClose={() => setSheetVisible(false)}
+                media={media}
+            />
+        </>
     );
 };
 

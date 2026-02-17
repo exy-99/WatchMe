@@ -41,6 +41,7 @@ export interface Recommendation {
     poster: string;
     year?: string;
     rating?: number;
+    runtime?: string;
 }
 
 export interface MovieDetail {
@@ -67,3 +68,11 @@ export type MediaItem = SeriesDetail | MovieDetail;
 
 // Type guard to distinguish MovieDetail from SeriesDetail
 export const isMovie = (media: MediaItem): media is MovieDetail => 'budget' in media;
+
+export interface Collection {
+    id: string;        // UUID
+    title: string;     // e.g. "My Watchlist"
+    isDefault?: boolean; // True for the main "Watchlist" (cannot be deleted)
+    items: MediaItem[]; // Array of movies/shows (Reuse existing MediaItem type)
+    createdAt: number;
+}

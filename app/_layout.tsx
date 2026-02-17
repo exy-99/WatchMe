@@ -6,6 +6,7 @@ import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
 import { LogBox } from "react-native";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import "./global.css";
 
 LogBox.ignoreLogs([
@@ -15,7 +16,7 @@ LogBox.ignoreLogs([
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, error] = useFonts({
     PlayfairDisplay_400Regular,
     PlayfairDisplay_700Bold,
     Lato_700Bold,
@@ -23,6 +24,10 @@ export default function RootLayout() {
     AlegreyaSC_400Regular,
     AlegreyaSC_700Bold,
   });
+
+  useEffect(() => {
+    if (error) throw error;
+  }, [error]);
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -35,12 +40,14 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="movie/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="details/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="details/movie/[id]" options={{ headerShown: false }} />
-      <Stack.Screen name="category/[id]" options={{ headerShown: false }} />
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="saved/[id]" />
+        <Stack.Screen name="details/movie/[id]" />
+        <Stack.Screen name="details/show/[id]" />
+        {/* Add other screens as needed */}
+      </Stack>
+    </GestureHandlerRootView>
   );
 }

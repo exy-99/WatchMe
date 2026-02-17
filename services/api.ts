@@ -27,6 +27,7 @@ export interface Movie {
     contentRating?: string;
     trailer?: string;
     keywords?: string[];
+    type?: 'movie' | 'tv' | 'anime';
     imageSet?: {
         verticalPoster?: { w480?: string; w720?: string };
         horizontalPoster?: { w1080?: string };
@@ -112,6 +113,7 @@ const mapSimklToMovie = (item: SimklItem): Movie => ({
     rating: item.ratings?.simkl?.rating || item.ratings?.imdb?.rating,
     genres: item.genres?.map(g => ({ id: g, name: g })) || [],
     trailer: item.trailer ? `https://www.youtube.com/watch?v=${item.trailer}` : undefined,
+    type: 'movie',
     imageSet: {
         verticalPoster: {
             w480: getPosterUrl(item.poster, 'm'),
@@ -223,10 +225,44 @@ export const getMovieDetails = async (id: string): Promise<MovieDetails | null> 
 export const getMovieByImdbId = getMovieDetails;
 
 // 4. Search
+// 4. Search
 export const searchMovies = async (query: string): Promise<Movie[]> => {
-    const data = await fetchSimkl<SimklItem[]>('/search/movie', { q: query, extended: 'full' });
+    // Explicitly requesting fields to ensure we get genres for filtering
+    const data = await fetchSimkl<SimklItem[]>('/search/movie', {
+        q: query,
+        extended: 'overview,metadata,genres,poster,tmdb'
+    });
+
     if (!data) return [];
-    return data.map(mapSimklToMovie);
+
+    // Map initial results
+    const movies = data.map(mapSimklToMovie);
+
+    // Enrich the top 10 results with full details to get genres
+    // We do this because the search endpoint doesn't return genres reliably
+    const enriched = await enrichMoviesWithDetails(movies.slice(0, 10));
+
+    // Combine enriched top results with the rest of the list
+    return [...enriched, ...movies.slice(10)];
+};
+
+// Helper to enrich movies with full details (for genres)
+const enrichMoviesWithDetails = async (movies: Movie[]): Promise<Movie[]> => {
+    const promises = movies.map(async (movie) => {
+        try {
+            // Use the existing getMovieDetails which calls /movies/{id} with extended=full
+            const details = await getMovieDetails(movie.imdbId); // imdbId here stores Simkl ID
+            if (details) {
+                return details; // Details has full genres
+            }
+            return movie;
+        } catch (e) {
+            console.warn(`[API] Failed to enrich movie: ${movie.title}`, e);
+            return movie;
+        }
+    });
+
+    return Promise.all(promises);
 };
 
 // 5. Genre Support

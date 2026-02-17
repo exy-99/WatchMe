@@ -1,15 +1,23 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { TextInput, TouchableOpacity, View } from "react-native";
+import FilterButton from "./search/FilterButton";
 
 interface SearchHeaderProps {
     query: string;
     setQuery: (text: string) => void;
     onSubmitEditing: () => void;
     onFilterPress: () => void;
+    hasActiveFilters: boolean;
 }
 
-export default function SearchHeader({ query, setQuery, onSubmitEditing, onFilterPress }: SearchHeaderProps) {
+export default function SearchHeader({
+    query,
+    setQuery,
+    onSubmitEditing,
+    onFilterPress,
+    hasActiveFilters,
+}: SearchHeaderProps) {
     return (
         <View className="px-5 py-4 flex-row items-center gap-3 bg-black">
             <View className="flex-1 flex-row items-center bg-black border border-[#00FF00] px-4 h-12">
@@ -31,12 +39,7 @@ export default function SearchHeader({ query, setQuery, onSubmitEditing, onFilte
                 )}
             </View>
 
-            <TouchableOpacity
-                onPress={onFilterPress}
-                className="w-12 h-12 bg-black border border-[#00FF00] justify-center items-center"
-            >
-                <Ionicons name="options" size={20} color="#00FF00" />
-            </TouchableOpacity>
+            <FilterButton onPress={onFilterPress} hasActiveFilters={hasActiveFilters} />
         </View>
     );
 }

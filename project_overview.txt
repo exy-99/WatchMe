@@ -1,0 +1,53 @@
+Project Name & Version
+----------------------
+Name: WatchMe
+Version: 1.0.0
+
+Description
+-----------
+A high-performance, aesthetically pleasing React Native application built with Expo, TypeScript, and the Simkl API. 
+Key features include:
+- Modern mobile development patterns
+- File-based routing with Expo Router
+- Global state persistence via Zustand and AsyncStorage
+- Modular component architecture
+- Custom caching strategies for API data
+
+Tech Stack
+----------
+- Framework: Expo (~54.0.31), React Native (0.81.5)
+- Language: TypeScript (~5.9.2), React (19.1.0)
+- Routing: accessible via expo-router (~6.0.21)
+- State Management: zustand (^5.0.11)
+- Styling: nativewind (^4.2.1), tailwindcss (^3.4.19)
+- API/Data: axios (^1.13.4), @react-native-async-storage/async-storage (2.2.0)
+- Icons/Fonts: @expo/vector-icons, @expo-google-fonts/*
+
+Key Scripts
+-----------
+- start: expo start
+- reset-project: node ./scripts/reset-project.js
+- android: expo run:android
+- ios: expo run:ios
+- web: expo start --web
+- lint: expo lint
+
+Directory Structure Summary
+---------------------------
+- /app: Core application logic and file-based routing. Includes `_layout.tsx` (entry point/providers) and `(tabs)` (main navigation).
+- /components: Reusable UI building blocks (e.g., Header, HeroCarousel, MediaFeed).
+- /services: API handling (`api.ts`) and data caching logic (`cache.ts`).
+- /store: Global state management powered by Zustand (`collections.ts`).
+- /types: TypeScript interfaces for type safety (e.g., `ui.ts`).
+- /assets: Static assets like images and fonts.
+- /constants: Project constants.
+- /utils: Utility functions.
+
+Key Configuration Files
+-----------------------
+- app.json: Expo configuration
+- tsconfig.json: TypeScript configuration
+- tailwind.config.js: Tailwind CSS configuration
+- babel.config.js: Babel configuration
+- metro.config.js: Metro bundler configuration
+- eslint.config.js: ESLint configuration

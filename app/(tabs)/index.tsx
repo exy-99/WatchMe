@@ -111,26 +111,40 @@ export default function Home() {
               <SkeletonRow />
             </>
           ) : (
-            Object.keys(activeTab === 'movie' ? MOVIE_CATEGORIES : (activeTab === 'show' ? TV_CATEGORIES : ANIME_CATEGORIES)).map(key => {
-              const activeMap = activeTab === 'movie' ? MOVIE_CATEGORIES : (activeTab === 'show' ? TV_CATEGORIES : ANIME_CATEGORIES);
-              const movies = sectionsData[key];
-              if (!movies || movies.length === 0) return null;
-              return (
-                <SectionRow
-                  key={key}
-                  title={activeMap[key].title}
-                  items={movies}
-                  mediaType={activeMap[key].type}
-                  categoryKey={key}
-                />
-              );
-            })
+            Object.keys(activeTab === 'movie' ? MOVIE_CATEGORIES : (activeTab === 'show' ? TV_CATEGORIES : ANIME_CATEGORIES)).length > 0 &&
+              Object.keys(sectionsData).length > 0 ? (
+              Object.keys(activeTab === 'movie' ? MOVIE_CATEGORIES : (activeTab === 'show' ? TV_CATEGORIES : ANIME_CATEGORIES)).map(key => {
+                const activeMap = activeTab === 'movie' ? MOVIE_CATEGORIES : (activeTab === 'show' ? TV_CATEGORIES : ANIME_CATEGORIES);
+                const movies = sectionsData[key];
+                if (!movies || movies.length === 0) return null;
+                return (
+                  <SectionRow
+                    key={key}
+                    title={activeMap[key].title}
+                    items={movies}
+                    mediaType={activeMap[key].type}
+                    categoryKey={key}
+                  />
+                );
+              })
+            ) : (
+              <View className="items-center py-20">
+                <Ionicons name="alert-circle-outline" size={48} color="#84f906" />
+                <Text className="text-white mt-4 font-bold">No content found</Text>
+                <Text className="text-white/60 text-xs mt-2 text-center px-10">
+                  Please check your internet connection or try again later.
+                </Text>
+              </View>
+            )
           )}
         </View>
 
         {/* Footer / System status */}
         <View className="items-center mt-10 mb-6 opacity-30">
           <Text className="text-primary font-mono text-[10px]">SYSTEM STATUS: ONLINE</Text>
+          <Text className="text-primary font-mono text-[10px]">
+            API_KEY: {process.env.EXPO_PUBLIC_SIMKL_CLIENT_ID ? `${process.env.EXPO_PUBLIC_SIMKL_CLIENT_ID.slice(0, 4)}***` : 'MISSING'}
+          </Text>
           <Text className="text-primary font-mono text-[10px]">V.2.0.26</Text>
         </View>
 

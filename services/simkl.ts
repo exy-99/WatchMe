@@ -4,6 +4,10 @@ import { generateCacheKey, getCachedData, setCachedData } from './cache';
 
 const EXPO_PUBLIC_SIMKL_CLIENT_ID = process.env.EXPO_PUBLIC_SIMKL_CLIENT_ID;
 
+if (!EXPO_PUBLIC_SIMKL_CLIENT_ID) {
+    console.error('❌ CRITICAL: EXPO_PUBLIC_SIMKL_CLIENT_ID is not defined. API calls will fail.');
+}
+
 const simklClient = axios.create({
     baseURL: 'https://api.simkl.com',
     headers: {
